@@ -5,6 +5,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
 from pathlib import Path
+import requests
 
 # ---------- 2. 可视化函数 ----------
 def draw_landmarks_on_image(rgb_image, detection_result):
@@ -30,6 +31,11 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 # ---------- 3. 创建检测器 ----------
 # 使用指定选项创建姿势关键点检测器
 MODEL_PATH = Path("pose_landmarker_heavy.task")
+if not MODEL_PATH.exists():
+    DOWNLOAD_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"  # 替换为你的下载链接
+    response = requests.get(DOWNLOAD_URL)
+    with open(MODEL_PATH, 'wb') as f:
+        f.write(response.content)
 base_options = python.BaseOptions(model_asset_path=str(MODEL_PATH))
 options = vision.PoseLandmarkerOptions(
     base_options=base_options,
