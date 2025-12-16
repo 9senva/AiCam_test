@@ -30,9 +30,6 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 # ---------- 3. 创建检测器 ----------
 # 使用指定选项创建姿势关键点检测器
 MODEL_PATH = Path("pose_landmarker_heavy.task")
-if not MODEL_PATH.exists():
-    DOWNLOAD_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"  # 替换为你的下载链接
-    download_file(DOWNLOAD_URL, MODEL_PATH)
 base_options = python.BaseOptions(model_asset_path=str(MODEL_PATH))
 options = vision.PoseLandmarkerOptions(
     base_options=base_options,
