@@ -36,7 +36,7 @@ detector = vision.PoseLandmarker.create_from_options(options)
 # ---------- 业务函数 ----------
 async def run_pose(image_bytes: bytes) -> SegmentedPose:
     nparr = np.frombuffer(image_bytes, np.uint8)
-    rgb = cv2.cvtColor(cv2.imdecode(nparr, cv2.IMREAD_COLOR), cv2.COLOR_BGR2BGR)
+    rgb = cv2.cvtColor(cv2.imdecode(nparr, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
 
     result = detector.detect(mp_image)
