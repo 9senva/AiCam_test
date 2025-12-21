@@ -138,6 +138,72 @@ export default AnalyzeImageScreen;
 - `POST /async-generate/start`
 - `GET /async-generate/status/{task_id}`
 
+#### 数据格式说明
+
+**1. `POST /async-generate/start`**
+
+-   **请求 (Request)**:
+    -   `Content-Type`: `multipart/form-data`
+    -   `Body`:
+        -   `background_image` (File): 用户上传的背景图片文件。
+
+-   **成功响应 (Response - `200 OK`)**:
+    -   `task_id` (string): 唯一任务ID。
+    ```json
+    {
+      "task_id": "a-unique-task-identifier-string"
+    }
+    ```
+
+**2. `GET /async-generate/status/{task_id}`**
+
+-   **请求 (Request)**:
+    -   `URL Path`: 包含要查询的 `task_id`。
+
+-   **成功响应 (Response - `200 OK`)**:
+    -   `status` (string): 任务的当前状态。可能是 `"processing"`, `"completed"`, 或 `"failed"`。
+    -   `result` (array | string | null): 任务的结果。
+        -   当 `status` 为 `"completed"` 时，这是一个对象数组。
+        -   当 `status` 为 `"failed"` 时，这是一个错误信息字符串。
+        -   当 `status` 为 `"processing"` 时，这是 `null`。
+
+    -   **任务处理中**:
+        ```json
+        {
+          "status": "processing",
+          "result": null
+        }
+        ```
+    -   **任务完成**:
+        ```json
+        {
+          "status": "completed",
+          "result": [
+            { 
+              "URL": "http://path/to/your/generated/image.png" 
+            }
+          ]
+        }
+        ```
+        -   `result[].URL` (string): 生成的图片URL。
+
+    -   **任务失败**:
+        ```json
+        {
+          "status": "failed",
+          "result": "A string describing the error that occurred."
+        }
+        ```
+
+-   **错误响应 (Response - `404 Not Found`)**:
+    -   当提供的 `task_id` 不存在时触发。
+    -   `detail` (string): 错误详情。
+    ```json
+    {
+        "detail": "Task with ID 'some-invalid-id' not found."
+    }
+    ```
+
 #### 前端调用示例
 
 **React Native 组件示例:**

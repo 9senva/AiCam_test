@@ -5,7 +5,7 @@ from app.schemas.request import AnalysisResponse
 from app.services.mp_service import run_pose
 from app.schemas.pose import SegmentedPose
 # 导入新的异步图像生成服务
-from app.services import ai_images_create
+from app.services import ai_images_generate
 
 router = APIRouter(
     prefix="/api/v1/ai",  # 为所有路由添加统一前缀
@@ -41,14 +41,14 @@ async def start_async_generation(
     这个接口会立即返回一个 task_id，并安排一个后台任务去执行实际的 AI 计算。
     """
     # 1. 创建一个新任务并获取 task_id
-    task_id = ai_images_create.create_generation_task()
+    task_id = ai_images_generate.create_generation_task()
     
     # 2. 读取上传的图片数据，以便传递给后台任务
     image_data = await background_image.read()
     
     # 3. 将真正的耗时任务添加到后台任务队列
     background_tasks.add_task(
-        ai_images_create.run_ai_generation_in_background, 
+        ai_images_generate.run_ai_generation_in_background, 
         task_id, 
         image_data, 
         background_image.filename
@@ -66,4 +66,4 @@ async def get_async_generation_status(task_id: str):
     前端可以使用 /start 接口返回的 task_id 来轮询这个端点，
     直到 status 变为 'completed' 或 'failed'。
     """
-    return ai_images_create.get_generation_task_status(task_id)
+    return ai_images_generate.get_generation_task_status(task_id)

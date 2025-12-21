@@ -20,4 +20,4 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(coin.router, prefix="/api", tags=["coin"])
-app.include_router(ai.router, prefix="/api", tags=["ai"])
+app.include_router(ai.router, tags=["ai"])
