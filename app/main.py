@@ -1,5 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from dotenv import load_dotenv
+load_dotenv()  # 加载 .env 文件
+
 from app.database.connection import init_models, engine
 from app.routers import auth, coin, ai
 

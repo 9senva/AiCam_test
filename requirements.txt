@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+aiomysql
+python-multipart
+requests
+opencv-python
+mediapipe
+volcengine-python-sdk[ark]
+bcrypt
+pydantic
+numpy
+python-dotenv
+
