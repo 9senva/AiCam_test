@@ -14,10 +14,12 @@ import base64
 from typing import Dict, Any
 from fastapi import UploadFile, HTTPException
 
+
 # 导入火山方舟客户端
 # 注意：在大型应用中，建议将 client 作为单例在应用启动时统一初始化，并通过依赖注入使用。
 # 这里为了模块独立，我们暂时在此处初始化。
 from volcenginesdkarkruntime import AsyncArk
+from volcenginesdkarkruntime.types.images.images import SequentialImageGenerationOptions
 import os
 from dotenv import load_dotenv
 
@@ -63,6 +65,7 @@ async def run_ai_generation_in_background(task_id: str, background_image_data: b
             image=[person_data, bg_data],
             size="2K",
             sequential_image_generation="auto",
+            sequential_image_generation_options = SequentialImageGenerationOptions(max_images=4),
             response_format="url",
             watermark=False,
         )
