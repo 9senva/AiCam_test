@@ -2,10 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>MyAPP_v1</string>
+	<string>MyAPP</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -48,5 +50,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+
+	<!-- APP 所需权限申请 -->
+	<key>NSCameraUsageDescription</key>
+	<string>我们需要您的授权来使用相机，以便您可以拍照。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>我们需要您的授权来访问相册，以便您可以选择和保存照片。</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>我们需要您的授权来将照片保存到您的相册中。</string>
 </dict>
 </plist>
