@@ -4,7 +4,7 @@ import os
 import json
 
 # --- 配置 ---
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "https://60.205.143.96"
 START_ENDPOINT = f"{BASE_URL}/api/v1/ai/async-generate/start"
 # 测试图片路径
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), "OIP.jpg")
@@ -39,7 +39,7 @@ def run_test():
     try:
         with open(IMAGE_PATH, "rb") as f:
             files = {"background_image": (os.path.basename(IMAGE_PATH), f, "image/jpeg")}
-            response = requests.post(START_ENDPOINT, files=files)
+            response = requests.post(START_ENDPOINT, files=files , verify=False)
             response.raise_for_status()  # 如果状态码是 4xx 或 5xx，则抛出异常
 
         print(f"POST {START_ENDPOINT} 成功 (状态码: {response.status_code})")
@@ -62,7 +62,7 @@ def run_test():
     for i in range(30): # 最多轮询15次
         print(f"\n轮询尝试次数 {i+1}...")
         try:
-            response = requests.get(status_endpoint)
+            response = requests.get(status_endpoint, verify=False)
             response.raise_for_status()
             
             print(f"GET {status_endpoint} 成功 (状态码: {response.status_code})")

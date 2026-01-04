@@ -1,11 +1,17 @@
 # app/routers/ai.py
 from fastapi import APIRouter, File, Form, UploadFile, BackgroundTasks
+from fastapi.responses import StreamingResponse
+import os
+import cv2
+import io
 from app.services.ai_service import analyze_image as ai_analyze, generate_image as ai_generate
 from app.schemas.request import AnalysisResponse
 from app.services.mp_service import run_pose
 from app.schemas.pose import SegmentedPose
 # 导入新的异步图像生成服务
 from app.services import ai_images_generate
+from app.services.dashed_service import process_image
+
 
 router = APIRouter(
     prefix="/api/v1/ai",  # 为所有路由添加统一前缀
@@ -67,3 +73,20 @@ async def get_async_generation_status(task_id: str):
     直到 status 变为 'completed' 或 'failed'。
     """
     return ai_images_generate.get_generation_task_status(task_id)
+
+
+@router.post("/process-image")
+async def process_image_route(image: UploadFile = File(...)):
+    os.makedirs("temp", exist_ok=True)
+    image_path = "temp/" + image.filename
+    with open(image_path, "wb") as buffer:
+        buffer.write(await image.read())
+
+    processed_image = process_image(image_path)
+
+    # 将处理后的图像转换为字节流
+    _, buffer = cv2.imencode('.jpg', processed_image)
+    image_bytes = io.BytesIO(buffer.tobytes())
+
+    return StreamingResponse(image_bytes, media_type="image/jpeg")
+
