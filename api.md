@@ -12,14 +12,14 @@
 
 ## 2. API 概览
 
-| 方法   | 路径                                       | 类型   | 功能                               |
-| :----- | :----------------------------------------- | :----- | :--------------------------------- |
-| `POST` | `/analyze-image`                           | 同步   | 上传图片和文本进行分析             |
-| `POST` | `/pose-segment`                            | 同步   | 上传图片进行姿态识别               |
-| `POST` | `/async-generate/start`                    | 异步   | **启动**一个耗时的图像生成任务     |
-| `GET`  | `/async-generate/status/{task_id}`         | 异步   | **查询**指定任务的状态和结果       |
-| `POST` | `/generate-image`                          | 同步   | (不推荐) 耗时的图像生成，建议废弃 |
-
+| 方法     | 路径                                 | 类型 | 功能                               |
+|:-------|:-----------------------------------|:---| :--------------------------------- |
+| `POST` | `/analyze-image`                   | 同步 | 上传图片和文本进行分析             |
+| `POST` | `/pose-segment`                    | 同步 | 上传图片进行姿态识别               |
+| `POST` | `/async-generate/start`            | 异步 | **启动**一个耗时的图像生成任务     |
+| `GET`  | `/async-generate/status/{task_id}` | 异步 | **查询**指定任务的状态和结果       |
+| `POST` | `/generate-image`                  | 同步 | (不推荐) 耗时的图像生成，建议废弃 |
+| `POST` | `/process-image`                   | 同步 | 上传图像文件并接收处理后的图像结果       |
 ---
 
 ## 3. API 使用详解 (React Native)
@@ -33,6 +33,12 @@
 #### 适用接口
 - `/analyze-image`
 - `/pose-segment`
+- `/process-image`
+
+#### 前端调用示例 (`/process-image`)
+
+此接口需要一个图片文件 (`image`) 。
+返回一个jpeg图片文件
 
 #### 前端调用示例 (`/analyze-image`)
 
