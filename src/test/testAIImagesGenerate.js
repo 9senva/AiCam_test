@@ -1,19 +1,12 @@
 /**
  * Node.js 测试脚本，用于测试异步图像生成 API。
- *
- * 注意：此脚本在 Node.js 环境中运行，而不是 React Native。
- * 因此，它不能直接复用 `startImageGeneration` 函数，因为该函数是为 RN 的文件对象设计的。
- * 相反，我们直接使用 `apiClient` 和 `form-data` 库来模拟文件上传，这是在 Node.js 中测试此类功能的标准方法。
  */
-const fs = require('fs');
 const path = require('path');
-const FormData = require('form-data');
-const { default: apiClient } = require('./testApiClient.js'); // <-- 修改点：使用测试专用的 API Client
-const { getGenerationStatus } = require('../services/api/AIGenerateImage.js'); // 复用状态查询函数
+const { startImageGeneration, getGenerationStatus } = require('./testAIGenerateImage.js');
 
 // --- 配置 ---
 // 确保此路径下有一个用于测试的图片文件
-const TEST_IMAGE_PATH = path.resolve(__dirname, 'OIP.webp');
+const TEST_IMAGE_PATH = path.resolve(__dirname, 'OIP.jpg');
 const POLLING_INTERVAL = 3000; // 轮询间隔（毫秒）
 
 /**
@@ -55,29 +48,18 @@ const pollForResult = (taskId) => {
 const runTest = async () => {
     console.log('--- 开始异步图像生成 API 测试 ---');
 
-    // 检查测试图片是否存在
+    // 简单检查图片是否存在 (在实际 startImageGeneration 中也会报错，这里预检查更友好)
+    const fs = require('fs');
     if (!fs.existsSync(TEST_IMAGE_PATH)) {
-        console.error(`\n错误：测试图片未找到！`);
-        const dir = path.dirname(TEST_IMAGE_PATH);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        fs.writeFileSync(TEST_IMAGE_PATH, '请在这里替换为一个真实的图片文件，例如 test-image.png');
-        console.error(`请在以下路径放置一个测试图片: ${TEST_IMAGE_PATH}\n`);
+        console.error(`\n错误：测试图片未找到: ${TEST_IMAGE_PATH}`);
         return;
     }
 
     try {
         // --- 步骤 1: 启动生成任务 ---
         console.log('[Step 1] 正在上传图片以启动任务...');
-        const form = new FormData();
-        form.append('background_image', fs.createReadStream(TEST_IMAGE_PATH));
 
-        const startResponse = await apiClient.post('/async-generate/start', form, {
-            headers: {
-                ...form.getHeaders(), // form-data 库会自动计算 Content-Type 和 Content-Length
-            },
-        });
+        const startResponse = await startImageGeneration(TEST_IMAGE_PATH);
 
         const { task_id } = startResponse;
         if (!task_id) {
@@ -91,7 +73,9 @@ const runTest = async () => {
 
         console.log('\n--- 测试成功 ---');
         console.log('最终结果:', finalResult);
-        console.log('生成的图片 URL:', finalResult.URL);
+        if (finalResult && finalResult.URL) {
+            console.log('生成的图片 URL:', finalResult.URL);
+        }
 
     } catch (error) {
         console.error('\n--- 测试失败 ---');
@@ -100,10 +84,9 @@ const runTest = async () => {
             console.error(`HTTP 状态: ${error.response.status}`);
             console.error('响应数据:', error.response.data);
         } else {
-            console.error('错误详情:', error.message);
+            console.error('错误信息:', error.message);
         }
     }
 };
 
-// 运行测试
 runTest();

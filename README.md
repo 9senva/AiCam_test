@@ -1,79 +1,66 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# MyAPP_v1 开发指南
 
-# Getting Started
+## ⚠️ 开发环境安全性配置 (重要)
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+本项目为了方便开发调试（特别是连接使用自签名证书或 IP 地址的后端服务器），在原生代码层面对网络安全性进行了**降级处理**。
 
-## Step 1: Start the Metro Server
+**注意：以下配置仅适用于开发环境 (Debug)。在构建生产环境版本 (Release) 发布前，必须移除或修改这些配置，否则会存在严重的安全漏洞（如中间人攻击）。**
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+### Android 平台改动
 
-To start Metro, run the following command from the _root_ of your React Native project:
+1.  **全局 SSL 证书信任 (MainApplication.kt)**
+    *   **文件位置**: [`android/app/src/main/java/com/myapp_v1/MainApplication.kt`](android/app/src/main/java/com/myapp_v1/MainApplication.kt)
+    *   **改动内容**: 在 `onCreate` 方法中注入了自定义的 `OkHttpClient`。
+    *   **作用**:
+        *   信任所有 SSL 证书（包括自签名证书）。
+        *   `HostnameVerifier` 返回 `true`，允许访问域名与证书不匹配的服务器（例如直接通过 IP 访问 HTTPS）。
 
+2.  **网络安全配置 (Network Security Config)**
+    *   **配置文件**: [`android/app/src/main/res/xml/network_security_config.xml`](android/app/src/main/res/xml/network_security_config.xml)
+    *   **清单引用**: [`android/app/src/main/AndroidManifest.xml`](android/app/src/main/AndroidManifest.xml)
+    *   **作用**:
+        *   允许明文流量 (`cleartextTrafficPermitted="true"`).
+        *   信任用户安装的根证书（方便使用 Charles/Fiddler 等抓包工具调试）。
+
+### iOS 平台改动
+
+1.  **App Transport Security (ATS)**
+    *   **文件位置**: [`ios/MyAPP_v1/Info.plist`](ios/MyAPP_v1/Info.plist)
+    *   **改动内容**: 配置了 `NSAppTransportSecurity`。
+    *   **作用**: 设置 `NSAllowsArbitraryLoads` 为 `true`，允许应用发起非 HTTPS 请求或不符合苹果安全标准的 HTTPS 请求。
+
+---
+
+## 项目运行
+
+### 环境准备
+确保已安装 Node.js, Java JDK, Android SDK (及模拟器), CocoaPods (iOS).
+
+### 安装依赖
 ```bash
-# using npm
-npm start
-
-# OR using Yarn
-yarn start
+npm install
+# iOS 额外步骤
+cd ios && pod install && cd ..
 ```
 
-## Step 2: Start your Application
+### 启动项目
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
+**Android:**
 ```bash
-# using npm
-npm run android
-
-# OR using Yarn
-yarn android
+npx react-native run-android
 ```
 
-### For iOS
-
+**iOS:**
 ```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+npx react-native run-ios
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+**启动 Metro 服务 (如果未自动启动):**
+```bash
+npx react-native start
+```
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## 测试脚本
+项目中包含用于测试后端连通性的 Node.js 脚本：
+*   位置: `src/test/`
+*   运行: `node src/test/testBackendConnectivity.js`

@@ -6,6 +6,7 @@ import AI_CameraScreen from '../screens/AI_CameraScreen';
 import BackgroundCamera from '../screens/AI_CameraScreen/sub_screens/BackgroundCameraScreen';
 import ImgGenerateScreen from '../screens/AI_CameraScreen/sub_screens/ImgGenerateScreen';
 import BackgroundPreview from '../screens/AI_CameraScreen/sub_screens/BackgroundPreviewScreen';
+import PoseCameraScreen from '../screens/AI_CameraScreen/sub_screens/PoseCameraScreen';
 
 // 用户页的子页面导航器
 import User from '../screens/UserScreen';
@@ -32,7 +33,22 @@ function AI_CameraStackScreen() {
             <AI_CameraStack.Screen
                 name="BackgroundCamera"
                 component={BackgroundCamera}
-                options={{ title: 'AI相机' }}
+                options={{
+                    title: '',
+                    headerTransparent: true,
+                    headerTintColor: '#fff',
+                    statusBarHidden: true,
+                }}
+            />
+            <AI_CameraStack.Screen
+                name="PoseCamera"
+                component={PoseCameraScreen}
+                options={{
+                    title: '',
+                    headerTransparent: true,
+                    headerTintColor: '#fff',
+                    statusBarHidden: true,
+                }}
             />
             <AI_CameraStack.Screen
                 name="ImgGenerate"

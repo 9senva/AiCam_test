@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, Text, Linking, AppState } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, Text, Linking, AppState, ActivityIndicator } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useCameraPermission, useCameraFormat } from 'react-native-vision-camera';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useImagePicker } from '../hook/useImagePicker';
+import { useAIImageGenerator } from '../hook/useAIImageGenerator';
 
 /**
  * BackgroundCameraScreen 组件
@@ -10,12 +13,37 @@ import { Camera, useCameraDevice, useCameraPermission } from 'react-native-visio
  * 主要功能包括：
  * 1. 实时预览相机画面
  * 2. 拍照功能
- * 3. 完整的相机权限管理（请求、跳转设置）
- * 4. 应用状态监听（从设置返回时自动重新检查权限，以及控制相机激活状态）
+ * 3. 相册选择功能
+ * 4. 完整的相机权限管理
+ * 5. 应用状态监听
  */
 const BackgroundCameraScreen = ({ navigation }) => {
     // 获取相机权限状态和请求权限的方法
     const { hasPermission, requestPermission } = useCameraPermission();
+
+    // AI 生成 Hook
+    const { loading, statusMessage, generateImage } = useAIImageGenerator();
+
+    // 处理图片选择后的逻辑 (复用 AI 生成逻辑)
+    const handleImageSelection = async (image) => {
+        if (!image || !image.uri) return;
+
+        try {
+            const result = await generateImage(image.uri);
+            if (result) {
+                navigation.navigate('ImgGenerate', {
+                    templateImage: result.templateImage,
+                    generatedImageUrl: result.generatedImageUrl,
+                });
+            }
+        } catch (error) {
+            console.log('Gallery image generation failed:', error);
+            // 错误已在 Hook 中 alert
+        }
+    };
+
+    // 相册选择 Hook
+    const { pickImage } = useImagePicker(handleImageSelection);
 
     // 获取页面聚焦状态
     const isFocused = useIsFocused();
@@ -24,6 +52,11 @@ const BackgroundCameraScreen = ({ navigation }) => {
 
     // 获取当前设备上的相机设备
     const device = useCameraDevice('back');
+
+    // 获取最佳相机格式（优先保证拍照功能）
+    const format = useCameraFormat(device, [
+        { photo: true }
+    ]);
 
     // 调试：监听设备获取情况
     React.useEffect(() => {
@@ -146,20 +179,37 @@ const BackgroundCameraScreen = ({ navigation }) => {
                 ref={cameraRef}
                 style={styles.camera} // 使用 flex 布局替代 absoluteFill
                 device={device}                 // 指定使用的摄像头设备
+                format={format}                 // 指定相机格式
                 isActive={isActive}             // 激活相机流
                 photo={true}                    // 启用拍照功能
                 video={false}                   // 明确禁用视频
                 audio={false}                   // 明确禁用音频
-                pixelFormat="yuv"               // 强制使用 yuv 格式，提升模拟器兼容性
                 onError={onCameraError}         // 错误监听
                 onInitialized={onCameraInitialized} // 初始化监听
             />
             {/* 底部控制栏 */}
             <View style={styles.bottomControls}>
-                <TouchableOpacity onPress={takePicture} style={styles.captureBtn}>
+                {/* 相册按钮 - 左侧 */}
+                <TouchableOpacity onPress={pickImage} style={styles.galleryButton} disabled={loading}>
+                    <Icon name="images-outline" size={28} color="#fff" />
+                </TouchableOpacity>
+
+                {/* 拍照按钮 - 中间 */}
+                <TouchableOpacity onPress={takePicture} style={styles.captureBtn} disabled={loading}>
                     <View style={styles.captureBtnInner} />
                 </TouchableOpacity>
+
+                {/* 右侧占位，保持布局平衡 */}
+                <View style={styles.galleryButtonPlaceholder} />
             </View>
+
+            {/* 加载遮罩 */}
+            {loading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.loadingText}>{statusMessage}</Text>
+                </View>
+            )}
         </View>
     );
 };
@@ -195,14 +245,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     bottomControls: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'space-between', // 改为两端对齐
+        alignItems: 'center', // 垂直居中
         paddingVertical: 30,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)', // 半透明黑色背景，增加按钮对比度
+        paddingHorizontal: 40, // 增加水平内边距
+        backgroundColor: 'rgba(0, 0, 0, 1)',
+    },
+    galleryButton: {
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 25,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    galleryButtonPlaceholder: {
+        width: 50,
+        height: 50,
     },
     captureBtn: {
         width: 70,
@@ -212,13 +272,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 4,
-        borderColor: 'rgba(255, 255, 255, 0.7)', // 半透明白色边框
+        borderColor: 'rgba(255, 255, 255, 0.7)',
     },
     captureBtnInner: {
         width: 60,
         height: 60,
         borderRadius: 30,
         backgroundColor: 'white',
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
+    },
+    loadingText: {
+        color: 'white',
+        marginTop: 10,
+        fontSize: 16,
     },
 });
 

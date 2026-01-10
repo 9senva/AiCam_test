@@ -9,3 +9,4 @@ export { default as apiClient } from './client.js';
 export * from './auth.js';
 export * from './user.js';
 export * from './AIGenerateImage.js';
+export * from './AIAnalyzeImage.js';

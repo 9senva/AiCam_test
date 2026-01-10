@@ -1,6 +1,12 @@
-import axios from 'axios';
-import { API_CONFIG } from '../services/api/config.js';
-import { getValueFor } from './mockSecureStorage.js'; // <-- 修改点
+const axios = require('axios');
+const https = require('https');
+const { API_CONFIG } = require('./testConfig.js');
+const { getValueFor } = require('./mockSecureStorage.js');
+
+// 创建一个忽略 SSL 证书错误的 Agent (仅用于 Node.js 测试环境)
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false
+});
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -9,6 +15,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  httpsAgent: httpsAgent // 添加 agent 以支持自签名证书或 IP 访问
 });
 
 apiClient.interceptors.request.use(
@@ -45,4 +52,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-export default apiClient;
+module.exports = apiClient;
